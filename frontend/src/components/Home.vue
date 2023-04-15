@@ -8,16 +8,12 @@
             <span>Connect a Wallet</span>
           </button>
         </div>
-       <div v-if="userAddress.length != 0">
-          <button class="bg-white text-black font-bold py-2 px-4 rounded-full border border-black" type="button">
-            {{userAddress[0]}}
-         </button>
-       </div>
-
-
+        <div v-if="userAddress.length != 0">
+           <button class="bg-white text-black font-bold py-2 px-4 rounded-full border border-black" type="button">
+             {{userAddress[0]}}
+          </button>
+        </div>
       </div>
-        
-
     </header>
     <table class="table">
       <tr>
@@ -30,13 +26,28 @@
       <tr v-for="(bond, index) in bondList" :key="index">
         <td>{{ bond.address }}</td>
         <td>{{ bond.bond }}</td>
-        <td>{{ bond.isVaid }}</td>
+        <td>{{ bond.isValid }}</td>
         <td>{{ bond.networks }}</td>
         <td>{{ bond.isSlashing }}</td>
       </tr>
     </table>
-
     <!-- Modal HTML -->
+    <div v-if="showTxModalFlag" class="modal">
+      <div class="modal-content">
+        <div class="modal-header flex justify-center">
+          <h2>{{operation}}</h2>
+          <button class="close" @click="closeTxModal">&times;</button>
+        </div>
+        <div class="flex justify-center" v-if="txhash == ''">
+          <div class="animate-ping h-2 w-2 bg-blue-600 rounded-full"></div>
+          <div class="animate-ping h-2 w-2 bg-blue-600 rounded-full mx-4"></div>
+          <div class="animate-ping h-2 w-2 bg-blue-600 rounded-full"></div>
+        </div>
+        <div class="break-words" v-if="txhash != ''">
+          {{txhash}}
+        </div>
+      </div>
+    </div>
     <div v-if="showModalFlag" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -65,10 +76,30 @@
           </select>
         </div>
         <div class="modal-footer">
-          <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addBond">Add Network</button>
+          <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addNetwork">Add Network</button>
         </div>
       </div>
     </div>
+
+    <!--<div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Add Network</h2>
+          <button class="close" @click="closeNetworkModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label for="networks" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an option</label>
+          <select  v-model="selecetedNetwork">
+            <option selected value="0">Choose a Network</option>
+            <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addNetwork">Add Network</button>
+        </div>
+      </div>
+    </div>-->
+
     <hr class="my-10">
     <div>
       <div v-if="userAddress.length != 0">
@@ -78,7 +109,6 @@
         <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" type="button" @click="showModal">
            Add Bond
         </button>
-
       </div>
     </div>
   </div>
@@ -97,12 +127,13 @@ const supportedNetworkList = [
 export default {
   data() {
     return {
-      bondList: [
-        { address: '0x123456789', bond: '1000 BTC', expire: '2023-08-15', networks: 'Bitcoin, Ethereum', isSlashing: 'Yes' }
-      ],
+      bondList: [],
       showModalFlag: false,
       showNetworkModalFlag: false,
+      showTxModalFlag: false,
       expireInput: '',
+      txhash: '',
+      operation: '',
       networkInput: '',
       amountInput: '',
       userAddress: [],
@@ -111,6 +142,9 @@ export default {
       mainnetBondManager: {} as any,
       supportedNetworkList: supportedNetworkList,
       selecetedNetwork: 0,
+      bondManagerList: [],
+      childStatusManager: [],
+      rootStatusManager: [],
     };
   },
   methods: {
@@ -127,6 +161,12 @@ export default {
     closeModal() {
       this.showModalFlag = false;
     },
+    showTxModal() {
+      this.showTxModalFlag = true;
+    },
+    closeTxModal() {
+      this.showTxModalFlag = false;
+    },
     showNetworkModal() {
       this.showNetworkModalFlag = true;
     },
@@ -134,42 +174,79 @@ export default {
       this.showNetworkModalFlag = false;
     },
     async addNetwork() {
+      this.txhash = "";
       if(this.selecetedNetwork == 0) {
         return;
       }
       const selectedNetworkDetail = supportedNetworkList.find((network :any) => {
         return network.id == this.selecetedNetwork;
       });
-      console.log(selectedNetworkDetail);
       const tx = bondManger.addNetwork(selectedNetworkDetail.chainId);
-      console.log(tx);
+      this.operation = "Add Network Tx Sending..."
+      this.closeNetworkModal()
+      this.showTxModal()
+      tx.then(async (result) => {
+        this.operation = "Complete!"
+        this.txhash = result.transactionHash;
+        this.bondList = [];
+        this.getBondList()
+      }).catch((e:any) => {
+        console.log(e);
+      });
 
       await tx;
     },
-
     async addBond() {
+      this.txhash = "";
       if(this.getNetworkId != 5) {
         await web3.switchNetwork(5);
       }
-
       // TODO: Perform data validation and add the new bond entry to the table
       const tx = bondManger.deposit(this.amountInput);
 
+      this.operation = "Add Bond Tx Sending..."
+      this.showTxModal()
       tx.then(async (result) => {
-        this.bondList.push({
-          address: await this.web3.getSelectedAddress(),
-          bond: this.amountInput,
-          //expire: this.expireInput,
-          //networks: this.networkInput,
-          isSlashing: 'No'
-        });
+        this.txhash = result.transactionHash;
+        this.operation = "Complete!"
+        this.bondList = [];
+        this.getBondList()
       }).catch((e:any) => {
         console.log(e);
-        console.log(constant.METAMASK_GENERAL_ERROR);
       });
 
       // Close the modal
       this.showModalFlag = false;
+    },
+    async getBondList() {
+      for(let i = 0; i < this.bondManagerList.length; i++ ) {
+        let mainnetBondManager = await BondManager.init(this.web3Mainnet, this.bondManagerList[i]);
+        const expiredInterval = await mainnetBondManager.getExpireDate()
+        const expiredDate = new Date(Date.now() + parseInt(expiredInterval) * 1000);
+        const expiredDateFormatted = expiredDate.getMonth() + 1  + "/" + expiredDate.getDate() + "/" + expiredDate.getHours() + "/" + expiredDate.getMinutes() 
+        const isValid = expiredInterval == 10800 ? "valid" : "will expire at" + expiredDateFormatted
+        //const networks = await mainnetBondManager.getAllAvailableNetworks()
+        //console.log(networks);
+        //const networksFormatted = networks.length > 0 ? String(networks) : "None"
+
+
+        const networks = []
+        for(let i = 0; i < supportedNetworkList.length; i++ ){
+          if(await mainnetBondManager.isAvailableNetwork(String(supportedNetworkList[i].chainId))) {
+            networks.push(supportedNetworkList[i].chainName)
+          }
+        }
+        const networksFormatted = networks.length > 0 ? String(networks) : "None"
+  
+        this.bondList.push({
+          address: await mainnetBondManager.owner(),
+          bond: await mainnetBondManager.getBond(),
+          isValid: isValid,
+          networks: networksFormatted,
+          isSlashing: 'No'
+        });
+      };
+
     }
   },
   async created() {
@@ -177,49 +254,14 @@ export default {
     if(isConnect) {
       await this.connectMetamask();
     }
-    const bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
-    const childStatusManager = [import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1, import.meta.env.ITE_CHILD_STATUS_MANAGER_ADDRESS2]; 
-    const rootStatusManager = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
+
+    this.bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
+    this.childStatusManager = [import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1, import.meta.env.ITE_CHILD_STATUS_MANAGER_ADDRESS2]; 
+    this.rootStatusManager = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
     this.web3Mainnet = await Web3Service.init(import.meta.env.VITE_GOERLI_PROVIDER as string, undefined);
     bondManger = await BondManager.init(web3, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
-    //this.mainnetBondManager = await BondManager.init(this.web3Mainnet, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
-    for(let i = 0; i < bondManagerList.length; i++ ) {
-      let mainnetBondManager = await BondManager.init(this.web3Mainnet, bondManagerList[i]);
-      console.log(mainnetBondManager);
-      console.log(await mainnetBondManager.getBond());
-      console.log(await mainnetBondManager.owner());
-      console.log(await mainnetBondManager.getExpireDate());
-     // console.log(await mainnetBondManager.getAllAvailableNetworks());
-      const expiredInterval = await mainnetBondManager.getExpireDate()
-      const expiredDate = new Date(Date.now() + parseInt(expiredInterval) * 1000);
-      const expiredDateFormatted = expiredDate.getMonth() + 1  + "/" + expiredDate.getDate() + "/" + expiredDate.getHours() + "/" + expiredDate.getMinutes() 
-      const isValid = expiredInterval == 10800 ? "valid" : "will expire at" + expiredDateFormatted
-      //const networks = await mainnetBondManager.getAllAvailableNetworks()
-      //console.log(networks);
-      /*const networks = await mainnetBondManager.getAllAvailableNetworks()
-      const networksFormatted = networks.length > 0 ? String(networks) : "None"*/
-      const network = await mainnetBondManager.isAvailableNetwork("80001")
-
-      this.bondList.push({
-        address: await mainnetBondManager.owner(),
-        bond: await mainnetBondManager.getBond(),
-        isValid: isValid,
-        //networks: networksFormatted,
-        networks: network,
-        isSlashing: 'No'
-      });
-    };
-    console.log(Date.now())
-    console.log(new Date(Date.now()))
-    console.log(new Date(Date.now() + 10800000))
-    //let mainnetBondManager = await BondManager.init(this.web3Mainnet, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
-    //console.log(bondManger);
-    /*console.log(await this.mainnetBondManager.getBond());
-    console.log(await this.mainnetBondManager.owner());
-    console.log(await this.mainnetBondManager.getExpireDate());*/
-
+    await this.getBondList();
   }
-
 };
 </script>
 
@@ -257,7 +299,7 @@ export default {
   }
   
   .modal {
-    @apply fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-50;
+    @apply fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-50 ;
   }
   
   .modal-content {

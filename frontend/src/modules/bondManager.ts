@@ -23,13 +23,17 @@ export default class BondManager {
     try {
       const gas = await this.contract.methods.deposit(_amount).estimateGas({ from: this.web3Service.getSelectedAddress(), value: _amount });
       const gasPrice = await this.web3Service.getGasPrice();
+      let txObj = { 
+          from: this.web3Service.getSelectedAddress(), 
+          gas: gas + GAS_BUFFER, 
+          gasPrice: gasPrice ,
+          value: _amount
+      } as any;
+
+      txObj = await this.web3Service.addGasPriceToTxObject(txObj);
+
       const tx = await this.contract.methods.deposit(_amount).
-        send({ 
-            from: this.web3Service.getSelectedAddress(), 
-            gas: gas + GAS_BUFFER, 
-            gasPrice: gasPrice ,
-            value: _amount
-        });
+        send(txObj);
       return tx;
     } catch (e: any) {
       throw new Error(e.message);
@@ -40,12 +44,15 @@ export default class BondManager {
     try {
       const gas = await this.contract.methods.addNetwork(_chainId).estimateGas({ from: this.web3Service.getSelectedAddress() });
       const gasPrice = await this.web3Service.getGasPrice();
+      let txObj = { 
+          from: this.web3Service.getSelectedAddress(), 
+          gas: gas + GAS_BUFFER, 
+          gasPrice: gasPrice ,
+      } as any;
+
+      txObj = await this.web3Service.addGasPriceToTxObject(txObj);
       const tx = this.contract.methods.addNetwork(_chainId).
-        send({ 
-            from: this.web3Service.getSelectedAddress(), 
-            gas: gas + GAS_BUFFER, 
-            gasPrice: gasPrice ,
-        });
+        send(txObj);
       return tx;
     } catch (e: any) {
       throw new Error(e.message);
