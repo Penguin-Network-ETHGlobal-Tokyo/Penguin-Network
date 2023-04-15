@@ -2,7 +2,6 @@
   <div class="container">
     <header class="header">
       <h1 class="title">BondManager</h1>
-      <!--<button class="add-button" @click="showModal">Add Bond</button>-->
       <div class="flex">
         <div v-if="userAddress.length == 0">
           <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" type="button" @click="connectMetamask">
@@ -31,7 +30,7 @@
       <tr v-for="(bond, index) in bondList" :key="index">
         <td>{{ bond.address }}</td>
         <td>{{ bond.bond }}</td>
-        <td>{{ bond.expire }}</td>
+        <td>{{ bond.isVaid }}</td>
         <td>{{ bond.networks }}</td>
         <td>{{ bond.isSlashing }}</td>
       </tr>
@@ -59,7 +58,11 @@
           <button class="close" @click="closeNetworkModal">&times;</button>
         </div>
         <div class="modal-body">
-          <input v-model="amountInput" type="text" placeholder="Amount" required />
+          <label for="networks" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an option</label>
+          <select  v-model="selecetedNetwork">
+            <option selected value="0">Choose a Network</option>
+            <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
+          </select>
         </div>
         <div class="modal-footer">
           <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addBond">Add Network</button>
@@ -86,6 +89,11 @@ import Web3Service from "../modules/web3Service";
 import BondManager from "../modules/bondManager";
 let web3: Web3Service;
 let bondManger: BondManager;
+
+const supportedNetworkList = [
+  {id: 1, chainId: 80001, chainName: "Mumbai"},
+  {id: 2, chainId: 534353, chainName: "ScrollTestnet"}
+]
 export default {
   data() {
     return {
@@ -98,7 +106,11 @@ export default {
       networkInput: '',
       amountInput: '',
       userAddress: [],
-      networkName: "polygon"
+      networkName: "polygon",
+      web3Mainnet: {} as any,
+      mainnetBondManager: {} as any,
+      supportedNetworkList: supportedNetworkList,
+      selecetedNetwork: 0,
     };
   },
   methods: {
@@ -121,13 +133,27 @@ export default {
     closeNetworkModal() {
       this.showNetworkModalFlag = false;
     },
+    async addNetwork() {
+      if(this.selecetedNetwork == 0) {
+        return;
+      }
+      const selectedNetworkDetail = supportedNetworkList.find((network :any) => {
+        return network.id == this.selecetedNetwork;
+      });
+      console.log(selectedNetworkDetail);
+      const tx = bondManger.addNetwork(selectedNetworkDetail.chainId);
+      console.log(tx);
+
+      await tx;
+    },
+
     async addBond() {
       if(this.getNetworkId != 5) {
         await web3.switchNetwork(5);
       }
 
       // TODO: Perform data validation and add the new bond entry to the table
-      const tx = await bondManger.deposit(this.amountInput);
+      const tx = bondManger.deposit(this.amountInput);
 
       tx.then(async (result) => {
         this.bondList.push({
@@ -154,14 +180,43 @@ export default {
     const bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
     const childStatusManager = [import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1, import.meta.env.ITE_CHILD_STATUS_MANAGER_ADDRESS2]; 
     const rootStatusManager = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
+    this.web3Mainnet = await Web3Service.init(import.meta.env.VITE_GOERLI_PROVIDER as string, undefined);
     bondManger = await BondManager.init(web3, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
-    console.log(bondManger);
-    console.log(await bondManger.getBond());
-    console.log(await bondManger.owner());
-    console.log(await bondManger.getExpireDate());
-    //await this.checkDisputable();
-    //tradeListを中身を確認して、Evidenceを取得して、Disputableか確認する
-    //this.isApproved = false;
+    //this.mainnetBondManager = await BondManager.init(this.web3Mainnet, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
+    for(let i = 0; i < bondManagerList.length; i++ ) {
+      let mainnetBondManager = await BondManager.init(this.web3Mainnet, bondManagerList[i]);
+      console.log(mainnetBondManager);
+      console.log(await mainnetBondManager.getBond());
+      console.log(await mainnetBondManager.owner());
+      console.log(await mainnetBondManager.getExpireDate());
+     // console.log(await mainnetBondManager.getAllAvailableNetworks());
+      const expiredInterval = await mainnetBondManager.getExpireDate()
+      const expiredDate = new Date(Date.now() + parseInt(expiredInterval) * 1000);
+      const expiredDateFormatted = expiredDate.getMonth() + 1  + "/" + expiredDate.getDate() + "/" + expiredDate.getHours() + "/" + expiredDate.getMinutes() 
+      const isValid = expiredInterval == 10800 ? "valid" : "will expire at" + expiredDateFormatted
+      //const networks = await mainnetBondManager.getAllAvailableNetworks()
+      //console.log(networks);
+      /*const networks = await mainnetBondManager.getAllAvailableNetworks()
+      const networksFormatted = networks.length > 0 ? String(networks) : "None"*/
+      const network = await mainnetBondManager.isAvailableNetwork("80001")
+
+      this.bondList.push({
+        address: await mainnetBondManager.owner(),
+        bond: await mainnetBondManager.getBond(),
+        isValid: isValid,
+        //networks: networksFormatted,
+        networks: network,
+        isSlashing: 'No'
+      });
+    };
+    console.log(Date.now())
+    console.log(new Date(Date.now()))
+    console.log(new Date(Date.now() + 10800000))
+    //let mainnetBondManager = await BondManager.init(this.web3Mainnet, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
+    //console.log(bondManger);
+    /*console.log(await this.mainnetBondManager.getBond());
+    console.log(await this.mainnetBondManager.owner());
+    console.log(await this.mainnetBondManager.getExpireDate());*/
 
   }
 

@@ -7,19 +7,6 @@ let isProcessingCallback: any = false;
 export default class Web3Service {
     public web3: any
     public ethereum : any
-    private chainList : {[key:number] : string }= {
-        1 : "Ethereum",
-        5 : "Goerli",
-        80001 : "Mumbai",
-        137 : "Polygon",
-        420 : "Optimism Goerli",
-        10 : "Optimism",
-        421613: "Arbitrum Goerli",
-        42161: "Arbitrum",
-        534353: "Scroll Testnet",
-        280: "ZkSync Testnet"
-    };
-
     constructor(web3? :any, ethereum? :any) {
         this.web3 = web3;
         this.ethereum = ethereum;
@@ -62,15 +49,6 @@ export default class Web3Service {
       } else {
         throw new Error('Non-Ethereum browser detected. You should consider trying Mist or MetaMask!');
       }
-    }
-
-    public async getNetworkName() {
-        const networkId = await this.getNetworkId();
-        if(networkId in this.chainList) {
-            return this.chainList[networkId];
-        } else {
-            return "Not Support Network";
-        }
     }
 
     public async switchNetwork(chainId: number) {
