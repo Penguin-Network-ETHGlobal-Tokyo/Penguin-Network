@@ -21,14 +21,16 @@
         <th>Bond</th>
         <th>Valid</th>
         <th>Networks</th>
-        <th>IsSlashing</th>
+        <th>IsSlashed</th>
+        <th>Message</th>
       </tr>
       <tr v-for="(bond, index) in bondList" :key="index">
         <td>{{ bond.address }}</td>
         <td>{{ bond.bond }}</td>
         <td>{{ bond.isValid }}</td>
         <td>{{ bond.networks }}</td>
-        <td>{{ bond.isSlashing }}</td>
+        <td>{{ bond.isSlashed }}</td>
+        <td><button class="bg-white text-black font-bold py-2 px-4 rounded-full border border-black" type="button" @click="showMessageModal">message</button></td>
       </tr>
     </table>
     <!-- Modal HTML -->
@@ -81,24 +83,32 @@
       </div>
     </div>
 
-    <!--<div class="modal">
+    <div v-if="showMessageModalFlag"  class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Add Network</h2>
-          <button class="close" @click="closeNetworkModal">&times;</button>
+          <h2>Send Arbitrary Message</h2>
+          <button class="close" @click="closeMessageModal">&times;</button>
         </div>
         <div class="modal-body">
-          <label for="networks" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an option</label>
+          <input v-model="message" type="text" placeholder="Encoded Message" required />
           <select  v-model="selecetedNetwork">
-            <option selected value="0">Choose a Network</option>
+            <option selected value="0">Choose Network</option>
             <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
           </select>
+          <br>
+
+          <select  v-model="destNetwork">
+            <option selected value="0">Choose Destination Network</option>
+            <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
+          </select>
+          <input v-model="destAddress" type="text" placeholder="Destination Address" required />
+
         </div>
         <div class="modal-footer">
-          <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addNetwork">Add Network</button>
+          <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="setRelayMessage">Add Message</button>
         </div>
       </div>
-    </div>-->
+    </div>
 
     <hr class="my-10">
     <div>
@@ -117,8 +127,14 @@
 <script lang="ts">
 import Web3Service from "../modules/web3Service";
 import BondManager from "../modules/bondManager";
+import ChildStatusManager from "../modules/childStatusManager";
+import RootStatusManager from "../modules/rootStatusManager";
+import MessageManager from "../modules/messageManager";
 let web3: Web3Service;
 let bondManger: BondManager;
+let childStatusManager: ChildStatusManager;
+let rootStatusManager: RootStatusManager;
+let messageManager: MessageManager;
 
 const supportedNetworkList = [
   {id: 1, chainId: 80001, chainName: "Mumbai"},
@@ -131,20 +147,27 @@ export default {
       showModalFlag: false,
       showNetworkModalFlag: false,
       showTxModalFlag: false,
+      showMessageModalFlag: false,
       expireInput: '',
       txhash: '',
       operation: '',
       networkInput: '',
       amountInput: '',
+      message: '',
+      destNetwork: '',
+      destAddress: '',
       userAddress: [],
       networkName: "polygon",
       web3Mainnet: {} as any,
+      web3Polygon: {} as any,
+      web3Scroll: {} as any,
       mainnetBondManager: {} as any,
       supportedNetworkList: supportedNetworkList,
       selecetedNetwork: 0,
       bondManagerList: [],
-      childStatusManager: [],
-      rootStatusManager: [],
+      childStatusManagerList: [],
+      rootStatusManagerList: [],
+      messageManagerList: [],
     };
   },
   methods: {
@@ -173,6 +196,54 @@ export default {
     closeNetworkModal() {
       this.showNetworkModalFlag = false;
     },
+    showMessageModal() {
+      this.showMessageModalFlag = true;
+    },
+    closeMessageModal() {
+      this.showMessageModalFlag = false;
+    },
+    async setRelayMessage() {
+      this.txhash = "";
+      if(this.message == "" ||  this.destAddress == "" ||  this.destNetwork == 0 || this.selecetedNetwork == 0) {
+        return;
+      }
+      if(await web3.getNetworkId() != "80001") {
+        return;
+      }
+
+      const selectedNetworkDetail = supportedNetworkList.find((network :any) => {
+        return network.id == this.selecetedNetwork;
+      });
+
+
+      const destNetworkDetail = supportedNetworkList.find((network :any) => {
+        return network.id == this.destNetwork;
+      });
+
+      const messageManagerinfo = this.messageManagerList.find(async (messageManager:any) => {
+        if(messageManager.network == selectedNetworkDetail.chainName) {
+          return messageManager;
+        }
+      });
+
+      messageManager = await MessageManager.init(web3, messageManagerinfo.endpoint);
+
+      const tx = messageManager.setRelayMessage(destNetworkDetail.chainId, this.destAddress, this.message);
+      this.operation = "Send Message Tx Sending..."
+      this.closeMessageModal()
+      this.showTxModal()
+      tx.then(async (result) => {
+        this.operation = "Complete!"
+        this.txhash = result.transactionHash;
+        this.bondList = [];
+        this.getBondList()
+      }).catch((e:any) => {
+        console.log(e);
+      });
+
+      await tx;
+    },
+
     async addNetwork() {
       this.txhash = "";
       if(this.selecetedNetwork == 0) {
@@ -201,7 +272,6 @@ export default {
       if(this.getNetworkId != 5) {
         await web3.switchNetwork(5);
       }
-      // TODO: Perform data validation and add the new bond entry to the table
       const tx = bondManger.deposit(this.amountInput);
 
       this.operation = "Add Bond Tx Sending..."
@@ -217,6 +287,20 @@ export default {
 
       // Close the modal
       this.showModalFlag = false;
+    },
+    async getSlashStatus() {
+      for(let i = 0; i < this.childStatusManagerList.length; i++ ) {
+        if(this.childStatusManagerList[i].network == "polygon") {
+          childStatusManager = await ChildStatusManager.init(this.web3Polygon, this.childStatusManagerList[i].endpoint);
+        } else if(this.childStatusManagerList[i].network == "scrollTestnet") {
+          childStatusManager = await ChildStatusManager.init(this.web3Scroll, this.childStatusManagerList[i].endpoint);
+        }
+        const isSlashed = await childStatusManager.getSlashStatus();
+        if(isSlashed) {
+          return true;
+        }
+      }
+      return false;
     },
     async getBondList() {
       for(let i = 0; i < this.bondManagerList.length; i++ ) {
@@ -237,13 +321,14 @@ export default {
           }
         }
         const networksFormatted = networks.length > 0 ? String(networks) : "None"
-  
+ 
+        const isSlashed = await this.getSlashStatus();
         this.bondList.push({
           address: await mainnetBondManager.owner(),
           bond: await mainnetBondManager.getBond(),
           isValid: isValid,
           networks: networksFormatted,
-          isSlashing: 'No'
+          isSlashed: isSlashed ? "Yes" : "No"
         });
       };
 
@@ -256,9 +341,14 @@ export default {
     }
 
     this.bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
-    this.childStatusManager = [import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1, import.meta.env.ITE_CHILD_STATUS_MANAGER_ADDRESS2]; 
-    this.rootStatusManager = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
+    //TODO retrieve from bondmanager
+    this.childStatusManagerList = [{network: "polygon", endpoint: import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1}];
+    this.rootStatusManagerList = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
+    //TODO specify messageManger for each relayer.
+    this.messageManagerList = [{network: "polygon", endpoint: import.meta.env.VITE_MESSAGE_MANAGER_ADDRESS1}]
     this.web3Mainnet = await Web3Service.init(import.meta.env.VITE_GOERLI_PROVIDER as string, undefined);
+    this.web3Polygon = await Web3Service.init(import.meta.env.VITE_MUMBAI_PROVIDER as string, undefined);
+    this.web3Scroll = await Web3Service.init(import.meta.env.VITE_SCROLL_TESTNET_PROVIDER as string, undefined);
     bondManger = await BondManager.init(web3, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
     await this.getBondList();
   }

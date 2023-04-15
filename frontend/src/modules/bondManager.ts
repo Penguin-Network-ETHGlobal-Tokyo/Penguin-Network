@@ -104,5 +104,15 @@ export default class BondManager {
     }
   }
 
+  async getRootStatusManagerAddress() {
+    try {
+      const tx = await this.contract.methods.getRootStatusManagerAddress().call();
+      return tx;
+    } catch (e: any) {
+      throw new Error(e.message);
+    }
+  }
+
+
 }
 
