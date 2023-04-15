@@ -19,9 +19,9 @@ export default class BondManager {
     return new BondManager(web3Service, contract);
   }
 
-  async deposit(_amount: number) {
+  async deposit(_amount: number, _isPoolDeposit:boolean) {
     try {
-      const gas = await this.contract.methods.deposit(_amount).estimateGas({ from: this.web3Service.getSelectedAddress(), value: _amount });
+      const gas = await this.contract.methods.deposit(_amount, _isPoolDeposit).estimateGas({ from: this.web3Service.getSelectedAddress(), value: _amount });
       const gasPrice = await this.web3Service.getGasPrice();
       let txObj = { 
           from: this.web3Service.getSelectedAddress(), 
@@ -32,7 +32,7 @@ export default class BondManager {
 
       txObj = await this.web3Service.addGasPriceToTxObject(txObj);
 
-      const tx = await this.contract.methods.deposit(_amount).
+      const tx = await this.contract.methods.deposit(_amount, _isPoolDeposit).
         send(txObj);
       return tx;
     } catch (e: any) {
