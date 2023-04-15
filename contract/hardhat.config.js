@@ -33,6 +33,12 @@ module.exports = {
       //gasPrice: 10000000000,
       accounts: { mnemonic }
     },
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      chainId: 11155111,
+      // gasPrice: 10000000000,
+      accounts: { mnemonic }
+    },
     // polygon: {
     //   url: utils.getNetwork("polygon").provider,
     //   chainId: utils.getNetwork("polygon").chainId,
@@ -96,6 +102,12 @@ module.exports = {
     lineaGoerli: {
       url: linea_goerli_provider,
       chainId: 59140,
+      // gasPrice: 30000000000,
+      accounts: { mnemonic },
+    },
+    taikoAlpha2: {
+      url: "https://l2rpc.hackathon.taiko.xyz",
+      chainId: 167002,
       // gasPrice: 30000000000,
       accounts: { mnemonic },
     }

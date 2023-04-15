@@ -14,7 +14,7 @@ const mumbaiMessageManagerAddress = "0xeDFbf3399088eEe159281fd1B5Cd1760a669cf95"
 const main = async () => {
   const web3_goerli = new Web3(new HDWalletProvider({
     mnemonic: process.env.MNEMONIC,
-    providerOrUrl: "https://eth-goerli.g.alchemy.com/v2/NX9gTxVdfvE_84VU2Hr60L-jLEK_gpsa",
+    providerOrUrl: process.env.GOERLI_PROVIDER,
     chainId: 5
   }));
   const web3_mumbai = new Web3(new HDWalletProvider({
@@ -77,6 +77,18 @@ const main = async () => {
   }, []);
   console.log("mumbaiEncodedMessage", mumbaiEncodedMessage);
 
+  // test scroll to polygon zkEVM
+
+  let accountNonce = await web3_scroll.eth.getTransactionCount(scroll_accounts[0]);
+  let response = await scrollMessageManager.methods.setRelayMessage(
+    1442,
+    "0x23a4480b98213D880efA2d2dD786714939DB1dE4",
+    polygonZkEvmGoerliEncodedMessage
+  ).send({
+    from: scroll_accounts[0], 
+    nonce: accountNonce 
+  });
+  console.log(response);
 
 }
 
