@@ -5,6 +5,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./StatusManager/IRootStatusManager.sol";
 
+interface IWETH {
+    function deposit() payable external;
+    function withdraw(uint wad) payable external;
+}
+
+interface IPool {
+    function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+    function withdraw(address asset, uint256 amount, address to) external;
+}
+
 /**
  * @title BondManager
  * @notice This contract manages bonds and allows bond user to slash.
@@ -13,6 +23,9 @@ contract BondManager is Ownable {
     /******** Variables ********/
   	uint256 constant UPDATE_PERIOD = 3 hours;
     uint256 public bonds;
+    uint256 public aaveBonds;
+    address WETH = 0xCCB14936C2E000ED8393A571D15A2672537838Ad;
+    address pool = 0x7b5C526B7F8dfdff278b4a3e045083FBA4028790;
 
     address public rootStatusManager;
 
@@ -35,7 +48,7 @@ contract BondManager is Ownable {
 
     /******** External function ********/
     function getBond() external view returns (uint256) {
-        return bonds;
+        return bonds + aaveBonds;
     }
 
     function getExpireDate() external view returns (uint256) {
@@ -72,9 +85,24 @@ contract BondManager is Ownable {
     * @notice Deposit bond
     * @param _amount The amount of bond
     */
-    function deposit(uint256 _amount) external payable onlyOwner {
+    function deposit(uint256 _amount, bool _isPoolDeposit) external payable onlyOwner {
         require(msg.value >= _amount, "Insufficient ETH balance");
-        bonds += _amount;
+        if (_isPoolDeposit) {
+            // convert ETH to WETH and approve
+            IWETH(WETH).deposit{value: msg.value}();
+            IERC20(WETH).approve(pool, _amount);
+
+            // supply WETH to pool
+            IPool(pool).supply(
+                WETH,
+                _amount,
+                address(this), // recipient
+                0
+            );
+            aaveBonds += _amount;
+        } else {
+            bonds += _amount;
+        }
     }
 
     /**
