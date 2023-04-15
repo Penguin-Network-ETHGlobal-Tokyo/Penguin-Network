@@ -52,9 +52,11 @@ contract BondManager is Ownable {
 
     function getAllAvailableNetworks() external view returns(uint256[] memory) {
         uint256[] memory allAvailableNetworks;
+        uint256 cnt = 0;
         for (uint256 i = 0; i < usedNetworks.length; i++) {
             if (isAvailableNetworks[usedNetworks[i]]) {
-                allAvailableNetworks[allAvailableNetworks.length] = usedNetworks[i];
+                allAvailableNetworks[cnt] = usedNetworks[i];
+                cnt += 1;
             }
         }
         return allAvailableNetworks;
