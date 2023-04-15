@@ -58,6 +58,8 @@
         </div>
         <div class="modal-body">
           <input v-model="amountInput" type="text" placeholder="Amount" required />
+          <label for="default-checkbox" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">is Pool Deposit? (using Aave)</label>
+          <input id="default-checkbox" type="checkbox" v-model="isPoolDeposit" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
         </div>
         <div class="modal-footer">
           <button class="bg-white hover:bg-slate-200 text-black font-bold py-2 px-4 rounded-full border border-black" @click="addBond">Add Bond</button>
@@ -151,6 +153,7 @@ export default {
       operation: '',
       networkInput: '',
       amountInput: '',
+      isPoolDeposit: false,
       message: '',
       destNetwork: 0,
       destAddress: '',
@@ -270,7 +273,8 @@ export default {
       if(this.getNetworkId != 5) {
         await web3.switchNetwork(5);
       }
-      const tx = bondManger.deposit(this.amountInput);
+      console.log(this.isPoolDeposit);
+      const tx = bondManger.deposit(this.amountInput, this.isPoolDeposit);
 
       this.operation = "Add Bond Tx Sending..."
       this.showTxModal()
