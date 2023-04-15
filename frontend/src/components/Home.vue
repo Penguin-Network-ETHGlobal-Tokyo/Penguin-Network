@@ -71,8 +71,7 @@
           <button class="close" @click="closeNetworkModal">&times;</button>
         </div>
         <div class="modal-body">
-          <label for="networks" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an option</label>
-          <select  v-model="selecetedNetwork">
+          <select  v-model="selecetedNetwork" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected value="0">Choose a Network</option>
             <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
           </select>
@@ -91,13 +90,12 @@
         </div>
         <div class="modal-body">
           <input v-model="message" type="text" placeholder="Encoded Message" required />
-          <select  v-model="selecetedNetwork">
+          <select  v-model="selecetedNetwork" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-3">
             <option selected value="0">Choose Network</option>
             <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
           </select>
-          <br>
 
-          <select  v-model="destNetwork">
+          <select  v-model="destNetwork" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-3">
             <option selected value="0">Choose Destination Network</option>
             <option v-for="(network, index) in supportedNetworkList" :key="index" :value="network.id">{{network.chainName}}</option>
           </select>
@@ -154,7 +152,7 @@ export default {
       networkInput: '',
       amountInput: '',
       message: '',
-      destNetwork: '',
+      destNetwork: 0,
       destAddress: '',
       userAddress: [],
       networkName: "polygon",
