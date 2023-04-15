@@ -44,12 +44,39 @@ const main = async () => {
   const polygon_zk_evm_accounts = await web3_polygon_zk_evm.eth.getAccounts();
   const linea_accounts = await web3_lineaGoerli.eth.getAccounts();
 
-  const scrollMessageManager = await web3_scroll.eth.Contract(messageManagerAbi, scrollMessageManagerAddress);
-  const polygonZkEvmMessageManager = await web3_polygon_zk_evm.eth.Contract(messageManagerAbi, polygonZkEvmMessageManagerAddress);
-  const lineaMessageManager = await web3_lineaGoerli.eth.Contract(messageManagerAbi, lineaMessageManagerAddress);
-  const mumbaiMessageManager = await web3_mumbai.eth.Contract(messageManagerAbi, mumbaiMessageManagerAddress);
+  const scrollMessageManager = new web3_scroll.eth.Contract(messageManagerAbi, scrollMessageManagerAddress);
+  const polygonZkEvmMessageManager = new web3_polygon_zk_evm.eth.Contract(messageManagerAbi, polygonZkEvmMessageManagerAddress);
+  const lineaMessageManager = new web3_lineaGoerli.eth.Contract(messageManagerAbi, lineaMessageManagerAddress);
+  const mumbaiMessageManager = new web3_mumbai.eth.Contract(messageManagerAbi, mumbaiMessageManagerAddress);
 
-  
+  const scrollEncodedMessage = await web3_scroll.eth.abi.encodeFunctionCall({
+    name: 'increment',
+    type: 'function',
+    inputs: []
+  }, []);
+  console.log("ScrollEncodedMessage", scrollEncodedMessage);
+
+  const polygonZkEvmGoerliEncodedMessage = await web3_polygon_zk_evm.eth.abi.encodeFunctionCall({
+    name: 'increment',
+    type: 'function',
+    inputs: []
+  }, []);
+  console.log("Polygon zkEVM encodedMessage", polygonZkEvmGoerliEncodedMessage);
+
+  const lineaEncodedMessage = await web3_lineaGoerli.eth.abi.encodeFunctionCall({
+    name: 'increment',
+    type: 'function',
+    inputs: []
+  }, []);
+  console.log("LineaEncodedMessage", lineaEncodedMessage);
+
+  const mumbaiEncodedMessage = await web3_mumbai.eth.abi.encodeFunctionCall({
+    name: 'increment',
+    type: 'function',
+    inputs: []
+  }, []);
+  console.log("mumbaiEncodedMessage", mumbaiEncodedMessage);
+
 
 }
 

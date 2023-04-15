@@ -13,6 +13,7 @@ contract MessageManager is Ownable {
   struct RelayMessage {
     address user;
     uint256 index;
+    uint256 destChainId;
     address to;
     uint256 fee;
     bytes message;
@@ -22,10 +23,11 @@ contract MessageManager is Ownable {
   uint256 internal messagesCount;
   mapping(uint256 => RelayMessage) public relayMessages;
 
-  function setRelayMessage(address _to, bytes calldata _message) external payable returns(RelayMessage memory) {
+  function setRelayMessage(uint256 _destChainId, address _to, bytes calldata _message) external payable returns(RelayMessage memory) {
     relayMessages[messagesCount] = RelayMessage(
       msg.sender,
       messagesCount,
+      _destChainId,
       _to,
       msg.value,
       _message,
