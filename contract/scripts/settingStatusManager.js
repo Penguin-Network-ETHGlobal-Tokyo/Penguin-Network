@@ -7,18 +7,18 @@ const Web3 = require('web3');
 const rootStatusManagerAbi = require("../artifacts/contracts/StatusManager/RootStatusManager.sol/RootStatusManager.json").abi;
 const childStatusManagerAbi = require("../artifacts/contracts/StatusManager/ChildStatusManager.sol/ChildStatusManager.json").abi;
 
-const bondManagerAddress = "0xbe9B1991B6499eA6dC374ccc0553bFc04BF7a4f1";
-const rootStatusManagerAddress = "0x238A3b283c6DFBfD6Aac67A735171041D9e444ec";
+const bondManagerAddress = "0x79326e35DD99CFEC8E211D3183ea63fBFEa3908B";
+const rootStatusManagerAddress = "0xFe335078B3890b35A9fCB803a4Cb6c585f36a3EC";
 
-const mumbaiChildStatusManagerAddress = "0x06618Fac8C5131e23268FBe53adDd5DE8636C223";
-const scrollChildStatusManagerAddress = "0xE0DCBC87B020f2a32907618c19662Ff4ca3024ad";
-const polygonZkEvmChildStatusManagerAddress = "0xb1d4dC4552b71f016307BA1C61Ab5106c2D247D1";
-const lineaChildStatusManagerAddress = "0xF4D1ad098b39DcFcE6004166dB2110083104B4D2";
+const mumbaiChildStatusManagerAddress = "0x8b6724dCAFEda35482227a01919611282A7fB2E8";
+const scrollChildStatusManagerAddress = "0xCd8eA186179C3A02a2Bb10d363Fef313C6C4cE64";
+const polygonZkEvmChildStatusManagerAddress = "0x137eAd4D646bec635cF732c40197086f47EFF635";
+const lineaChildStatusManagerAddress = "0x32035EB63Ce05ac93316351C4124e3Fb2C969E29";
 
-const mumbaiMessageManagerAddress = "0xeDFbf3399088eEe159281fd1B5Cd1760a669cf95";
-const scrollMessageManagerAddress = "0xBf36C732926de8D23264Cb5d5a62b57912ba2544";
-const polygonZkEvmMessageManagerAddress = "0x35E971D87476fDF85733013a26B3a70bb9aa7025";
-const lineaMessageManagerAddress = "0xBffEc066627fb3D002f7584275Ab3d78944aFf0c";
+const mumbaiMessageManagerAddress = "0xE0DCBC87B020f2a32907618c19662Ff4ca3024ad";
+const scrollMessageManagerAddress = "0xe11733579975411fa55d162A1BE42198238D5c67";
+const polygonZkEvmMessageManagerAddress = "0xd43abb96B068b6BacA043B706daB3B8f8E7C71D6";
+const lineaMessageManagerAddress = "0x655518579717B17b657F45f1313db333019FE130";
 
 const main = async () => {
   const web3_goerli = new Web3(new HDWalletProvider({

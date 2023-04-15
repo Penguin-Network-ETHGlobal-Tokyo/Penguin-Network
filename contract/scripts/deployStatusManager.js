@@ -10,7 +10,7 @@ async function main() {
 
   const RootStatusManager = await hre.ethers.getContractFactory("RootStatusManager");
   const ChildStatusManager = await hre.ethers.getContractFactory("ChildStatusManager");
-  const rootStatusManagerAddress = "0x67Bb3792cD825740344985676C7D109A427f1457";
+  const rootStatusManagerAddress = "0xFe335078B3890b35A9fCB803a4Cb6c585f36a3EC";
 
   if (hre.network.name == "goerli" || hre.network.name == "mainnet") {
     console.log("Deploying Root Status Manager Contract");

@@ -6,8 +6,8 @@ const Web3 = require('web3');
 
 const bondManagerAbi = require("../artifacts/contracts/BondManager.sol/BondManager.json").abi;
 
-const bondManagerAddress = "0xbe9B1991B6499eA6dC374ccc0553bFc04BF7a4f1";
-const rootStatusManagerAddress = "0x238A3b283c6DFBfD6Aac67A735171041D9e444ec";
+const bondManagerAddress = "0x79326e35DD99CFEC8E211D3183ea63fBFEa3908B";
+const rootStatusManagerAddress = "0xFe335078B3890b35A9fCB803a4Cb6c585f36a3EC";
 
 const main = async () => {
   const web3_goerli = new Web3(new HDWalletProvider({

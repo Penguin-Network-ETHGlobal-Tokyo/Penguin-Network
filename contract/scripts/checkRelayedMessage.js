@@ -3,13 +3,10 @@ require('dotenv').config();
 const Web3 = require('web3');
 
 // Message Manager Abi
-const messageManagerAbi = require("../artifacts/contracts/MessageManager.sol/MessageManager.json").abi;
+const incrementAbi = require("../artifacts/contracts/Increment.sol/Increment.json").abi;
 
 // Message Manager Address
-const scrollMessageManagerAddress = "0xe11733579975411fa55d162A1BE42198238D5c67";
-const polygonZkEvmMessageManagerAddress = "0xd43abb96B068b6BacA043B706daB3B8f8E7C71D6";
-const lineaMessageManagerAddress = "0x655518579717B17b657F45f1313db333019FE130";
-const mumbaiMessageManagerAddress = "0xE0DCBC87B020f2a32907618c19662Ff4ca3024ad";
+const incrementAddress = "0xB4096Edd009eb140817D970CB3B71f132c0ccA4A";
 
 const main = async () => {
   const web3_goerli = new Web3(new HDWalletProvider({
@@ -44,16 +41,29 @@ const main = async () => {
   const polygon_zk_evm_accounts = await web3_polygon_zk_evm.eth.getAccounts();
   const linea_accounts = await web3_lineaGoerli.eth.getAccounts();
 
-  const scrollMessageManager = new web3_scroll.eth.Contract(messageManagerAbi, scrollMessageManagerAddress);
-  const polygonZkEvmMessageManager = new web3_polygon_zk_evm.eth.Contract(messageManagerAbi, polygonZkEvmMessageManagerAddress);
-  const lineaMessageManager = new web3_lineaGoerli.eth.Contract(messageManagerAbi, lineaMessageManagerAddress);
-  const mumbaiMessageManager = new web3_mumbai.eth.Contract(messageManagerAbi, mumbaiMessageManagerAddress);
+  const scrollIncrement = new web3_scroll.eth.Contract(incrementAbi, incrementAddress);
 
   // test scroll to polygon zkEVM
 
-  let accountNonce = await web3_polygon_zk_evm.eth.getTransactionCount(polygon_zk_evm_accounts[0]);
-  let response = await polygonZkEvmMessageManager.methods.getRelayMessage(0).call();
+  const response = await scrollIncrement.methods.getCnt().call();
   console.log(response);
+
+  const mnemonic = process.env.MNEMONIC;
+  const owner = await ethers.Wallet.fromMnemonic(mnemonic);
+  const ownerAddress = owner.address;
+
+  const incrementTx = await web3_scroll.eth.sendTransaction({
+    from: ownerAddress,
+    to: "0xB4096Edd009eb140817D970CB3B71f132c0ccA4A",
+    data: "0xd09de08a",
+    gas: 200000
+  });
+  console.log(incrementTx);
+  
+  const responseAfter = await scrollIncrement.methods.getCnt().call();
+  console.log(responseAfter);
+
+  // const contractInstance = new web3_scroll.eth.Contract([], "0xB4096Edd009eb140817D970CB3B71f132c0ccA4A");
 
   // let response = await polygonZkEvmMessageManager.methods.getMessageCount().call()
   // console.log(response);

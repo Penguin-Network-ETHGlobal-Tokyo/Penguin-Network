@@ -136,7 +136,10 @@ let messageManager: MessageManager;
 
 const supportedNetworkList = [
   {id: 1, chainId: 80001, chainName: "Mumbai"},
-  {id: 2, chainId: 534353, chainName: "ScrollTestnet"}
+  {id: 2, chainId: 534353, chainName: "ScrollTestnet"},
+  {id: 3, chainId: 1442, chainName: "Polygon zkEVM"},
+  {id: 4, chainId: 59140, chainName: "LineaGoerli"},
+  {id: 5, chainId: 167002, chainName: "TaikoAlpha2"}
 ]
 export default {
   data() {
@@ -159,6 +162,8 @@ export default {
       web3Mainnet: {} as any,
       web3Polygon: {} as any,
       web3Scroll: {} as any,
+      web3PolygoZkEvm: {} as any,
+      web3Linea: {} as any,
       mainnetBondManager: {} as any,
       supportedNetworkList: supportedNetworkList,
       selecetedNetwork: 0,
@@ -205,9 +210,9 @@ export default {
       if(this.message == "" ||  this.destAddress == "" ||  this.destNetwork == 0 || this.selecetedNetwork == 0) {
         return;
       }
-      if(await web3.getNetworkId() != "80001") {
-        return;
-      }
+      // if(await web3.getNetworkId() != "80001") {
+      //   return;
+      // }
 
       const selectedNetworkDetail = supportedNetworkList.find((network :any) => {
         return network.id == this.selecetedNetwork;
@@ -292,6 +297,10 @@ export default {
           childStatusManager = await ChildStatusManager.init(this.web3Polygon, this.childStatusManagerList[i].endpoint);
         } else if(this.childStatusManagerList[i].network == "scrollTestnet") {
           childStatusManager = await ChildStatusManager.init(this.web3Scroll, this.childStatusManagerList[i].endpoint);
+        } else if (this.childStatusManagerList[i].network == "polygonZkEvm") {
+          childStatusManager = await ChildStatusManager.init(this.web3PolygoZkEvm, this.childStatusManagerList[i].endpoint);
+        } else if (this.childStatusManagerList[i].network == "linea") {
+          childStatusManager = await ChildStatusManager.init(this.web3Linea, this.childStatusManagerList[i].endpoint);
         }
         const isSlashed = await childStatusManager.getSlashStatus();
         if(isSlashed) {
@@ -340,13 +349,15 @@ export default {
 
     this.bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
     //TODO retrieve from bondmanager
-    this.childStatusManagerList = [{network: "polygon", endpoint: import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1}];
+    this.childStatusManagerList = [{network: "polygonZkEvm", endpoint: import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1}];
     this.rootStatusManagerList = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
     //TODO specify messageManger for each relayer.
-    this.messageManagerList = [{network: "polygon", endpoint: import.meta.env.VITE_MESSAGE_MANAGER_ADDRESS1}]
+    this.messageManagerList = [{network: "polygonZkEvm", endpoint: import.meta.env.VITE_MESSAGE_MANAGER_ADDRESS1}]
     this.web3Mainnet = await Web3Service.init(import.meta.env.VITE_GOERLI_PROVIDER as string, undefined);
     this.web3Polygon = await Web3Service.init(import.meta.env.VITE_MUMBAI_PROVIDER as string, undefined);
     this.web3Scroll = await Web3Service.init(import.meta.env.VITE_SCROLL_TESTNET_PROVIDER as string, undefined);
+    this.web3PolygoZkEvm = await Web3Service.init(import.meta.env.VITE_POLYGON_ZK_EVM_TESTNET_PROVIDER as string, undefined);
+    this.web3Linea = await Web3Service.init(import.meta.env.VITE_LINEA_GOERLI_PROVIDER as string, undefined);
     bondManger = await BondManager.init(web3, import.meta.env.VITE_BOND_MANAGER_ADDRESS1 as string);
     await this.getBondList();
   }

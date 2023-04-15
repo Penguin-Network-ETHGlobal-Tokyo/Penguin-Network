@@ -2,6 +2,7 @@
 pragma solidity 0.8.9;
 
 contract Increment {
+
   uint256 public cnt;
 
   function increment() external returns(uint256){

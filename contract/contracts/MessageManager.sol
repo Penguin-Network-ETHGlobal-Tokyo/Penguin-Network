@@ -37,16 +37,22 @@ contract MessageManager is Ownable {
     return relayMessages[messagesCount - 1];
   }
 
+  // function getRelayMessage(
+  //   uint256 _startMessageId, uint256 _endMessageId
+  // ) external returns (RelayMessage[] memory) {
+  //   RelayMessage[] memory returnValue;
+  //   for (uint256 i = _startMessageId; i < _endMessageId; i++) {
+  //     if (relayMessages[i].status == STATUS_SUBMIT) {
+  //       returnValue[i - _startMessageId] = relayMessages[i];
+  //     }
+  //   }
+  //   return returnValue;
+  // }
+
   function getRelayMessage(
-    uint256 _startMessageId, uint256 _endMessageId
-  ) external returns (RelayMessage[] memory) {
-    RelayMessage[] memory returnValue;
-    for (uint256 i = _startMessageId; i < _endMessageId; i++) {
-      if (relayMessages[i].status == STATUS_SUBMIT) {
-        returnValue[i - _startMessageId] = relayMessages[i];
-      }
-    }
-    return returnValue;
+    uint256 _messageId
+  ) external view returns (RelayMessage memory) {
+    return relayMessages[_messageId];
   }
 
   function getMessageCount () external view returns(uint256) {
