@@ -5,7 +5,7 @@
     "hardhat": "^2.13.1"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.2",
+    "@openzeppelin/contracts": "^4.8.3",
     "@truffle/hdwallet-provider": "^2.1.9",
     "dotenv": "^16.0.3",
     "hardhat-contract-sizer": "^2.8.0",
