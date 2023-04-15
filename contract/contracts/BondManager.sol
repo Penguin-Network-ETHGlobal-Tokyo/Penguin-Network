@@ -62,7 +62,7 @@ contract BondManager is Ownable {
         return allAvailableNetworks;
     }
 
-    function isAvailableNetwork(uint256 _chainId) external view returns (bool) {
+    function isAvailableNetwork(uint256 _chainId) public view returns (bool) {
         return isAvailableNetworks[_chainId];
     }
 
