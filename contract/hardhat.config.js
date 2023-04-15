@@ -106,8 +106,8 @@ module.exports = {
       accounts: { mnemonic },
     },
     taikoAlpha2: {
-      url: "https://l2rpc.hackathon.taiko.xyz",
-      chainId: 167002,
+      url: "https://rpc.a2.taiko.xyz",
+      chainId: 167004,
       // gasPrice: 30000000000,
       accounts: { mnemonic },
     }

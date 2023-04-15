@@ -351,10 +351,10 @@ export default {
       await this.connectMetamask();
     }
 
-    this.bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2]; 
+    this.bondManagerList = [import.meta.env.VITE_BOND_MANAGER_ADDRESS1, import.meta.env.VITE_BOND_MANAGER_ADDRESS2, import.meta.env.VITE_BOND_MANAGER_ADDRESS3]; 
     //TODO retrieve from bondmanager
     this.childStatusManagerList = [{network: "polygonZkEvm", endpoint: import.meta.env.VITE_CHILD_STATUS_MANAGER_ADDRESS1}];
-    this.rootStatusManagerList = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2]; 
+    this.rootStatusManagerList = [import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS1, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS2, import.meta.env.VITE_ROOT_STATUS_MANAGER_ADDRESS3]; 
     //TODO specify messageManger for each relayer.
     this.messageManagerList = [{network: "polygonZkEvm", endpoint: import.meta.env.VITE_MESSAGE_MANAGER_ADDRESS1}]
     this.web3Mainnet = await Web3Service.init(import.meta.env.VITE_GOERLI_PROVIDER as string, undefined);

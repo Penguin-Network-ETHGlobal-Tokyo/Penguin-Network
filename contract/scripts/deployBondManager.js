@@ -15,12 +15,12 @@ async function main() {
 
   const BondManager = await hre.ethers.getContractFactory("BondManager");
 
-  if (hre.network.name == "goerli" || hre.network.name == "mainnet") {
+  if (hre.network.name == "goerli" || hre.network.name == "sepolia") {
     console.log("Deploying Bond Manager Contract");
 
     const bondManager = await BondManager
       .connect(accounts[0])
-      .deploy(ownerAddress);
+      .deploy("0x29AF799211838c3E8A09B8EA0ea98a2308C2F887");
     await bondManager.deployed();
     console.log("BondManager TxHash:", bondManager.deployTransaction.hash);
 
